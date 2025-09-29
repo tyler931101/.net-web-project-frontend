@@ -1,4 +1,6 @@
 ﻿@page "/counter"
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @layout MainLayout
 
 <PageTitle>Counter</PageTitle>

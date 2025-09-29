@@ -1,0 +1,101 @@
+@page "/ticket"
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@layout MainLayout
+@using frontend.Components
+@using MudBlazor
+@inject IDialogService DialogService
+
+<PageTitle>Ticket</PageTitle>
+
+<div style="display: flex; justify-content: space-between;">
+    <h1>Ticket</h1>
+    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog" />
+</div>
+
+
+<MudDropContainer T="DropItem" DraggingClass="mud-alert-text-warning" ItemDraggingClass="mud-alert-text-warning" Items="_items" ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)" NoDropClass="mud-border-error" ItemDropped="ItemUpdated" Class="d-flex flex-wrap flex-grow-1">
+    <ChildContent>
+        <MudDropZone T="DropItem" Identifier="Air Zone 1" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+            <MudText Typo="Typo.h6" Class="mb-4">To do</MudText>
+         </MudDropZone>
+        <MudDropZone T="DropItem" Identifier="Air Zone 2" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+            <MudText Typo="Typo.h6" Class="mb-4">Review</MudText>
+        </MudDropZone>
+        <MudDropZone T="DropItem" Identifier="Air Zone 3" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+            <MudText Typo="Typo.h6" Class="mb-4">Testing</MudText>
+        </MudDropZone>
+        <MudDropZone T="DropItem" Identifier="Air Zone 4" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+            <MudText Typo="Typo.h6" Class="mb-4">Done</MudText>
+        </MudDropZone>
+    </ChildContent>
+    <ItemRenderer>
+        <div class="mud-elevation-25 pa-4 my-4 d-flex justify-content-between align-items-center">
+            @context.Name
+            <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                           Color="Color.Primary"
+                           OnClick="@(() => OpenEditDialog(context))" />
+        </div>
+    </ItemRenderer>
+</MudDropContainer>
+
+@code {
+    private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
+    {
+        dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
+    }
+    
+    private List<DropItem> _items = new()
+    {
+        new DropItem(){ Name = "Grumman", Team = "BLUE", Identifier = "Air Zone 3" },
+        new DropItem(){ Name = "Tomcat", Team = "BLUE", Identifier = "Air Zone 3" },
+        new DropItem(){ Name = "McDonnell", Team = "BLUE", Identifier = "Air Zone 3" },
+        new DropItem(){ Name = "Frogfoot", Team = "RED", Identifier = "Air Zone 1" },
+        new DropItem(){ Name = "Fulcrum", Team = "RED", Identifier = "Air Zone 1" },
+        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
+        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
+        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
+        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
+    };
+    
+    public class DropItem
+    {
+        public string Name { get; init; } = string.Empty;
+        public string Team { get; init; } = string.Empty;
+        public string Identifier { get; set; } = string.Empty;
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        var parameters = new DialogParameters { ["DialogTitle"] = "Create Ticket" };
+
+        var dialog = await DialogService.ShowAsync<TicketDialog>("New Ticket", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is DropItem newTicket)
+        {
+            _items.Add(newTicket);
+        }
+    }
+
+    private async Task OpenEditDialog(DropItem ticket)
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        var parameters = new DialogParameters
+        {
+            ["DialogTitle"] = "Edit Ticket",
+            ["Ticket"] = ticket
+        };
+
+        var dialog = await DialogService.ShowAsync<TicketDialog>("Edit Ticket", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is DropItem updatedTicket)
+        {
+            var index = _items.IndexOf(ticket);
+            if (index >= 0)
+                _items[index] = updatedTicket;
+        }
+    }
+}

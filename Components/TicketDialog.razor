@@ -1,0 +1,63 @@
+@using MudBlazor
+@using frontend.Pages   <!-- for DropItem -->
+
+<MudDialog>
+    <TitleContent>
+        @DialogTitle
+    </TitleContent>
+
+    <DialogContent>
+        <MudTextField @bind-Value="TicketName" Label="Ticket Name" Required="true" />
+        <MudSelect T="string" @bind-Value="SelectedZone" Label="Zone" Required="true">
+            <MudSelectItem Value="@("Air Zone 1")">To do</MudSelectItem>
+            <MudSelectItem Value="@("Air Zone 2")">Review</MudSelectItem>
+            <MudSelectItem Value="@("Air Zone 3")">Testing</MudSelectItem>
+            <MudSelectItem Value="@("Air Zone 4")">Done</MudSelectItem>
+        </MudSelect>
+
+        <MudSelect T="string" @bind-Value="SelectedTeam" Label="Team" Required="true">
+            <MudSelectItem Value="@("BLUE")">Blue</MudSelectItem>
+            <MudSelectItem Value="@("RED")">Red</MudSelectItem>
+        </MudSelect>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Save">Save</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] public IMudDialogInstance? MudDialog { get; set; }
+
+    [Parameter] public string DialogTitle { get; set; } = "Ticket";
+    [Parameter] public Ticket.DropItem? Ticket { get; set; }
+
+    public string TicketName { get; set; } = string.Empty;
+    public string SelectedZone { get; set; } = string.Empty;
+    public string SelectedTeam { get; set; } = "BLUE";
+
+    protected override void OnInitialized()
+    {
+        if (Ticket != null)
+        {
+            TicketName = Ticket.Name;
+            SelectedZone = Ticket.Identifier;
+            SelectedTeam = Ticket.Team;
+        }
+    }
+
+    private void Save()
+    {
+        var updatedTicket = new Ticket.DropItem
+        {
+            Name = TicketName,
+            Team = SelectedTeam,
+            Identifier = SelectedZone
+        };
+
+        MudDialog?.Close(DialogResult.Ok(updatedTicket));
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+}

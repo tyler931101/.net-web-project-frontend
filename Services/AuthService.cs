@@ -49,20 +49,31 @@ namespace frontend.Services
             if (response.IsSuccessStatusCode)
             {
                 var authResult = await response.Content.ReadFromJsonAsync<AuthResult>();
+                Console.Write(authResult);
 
                 if (authResult != null && authResult.IsSuccess && !string.IsNullOrEmpty(authResult.Message))
                 {
                     var token = authResult.Message;
+                    var userId = authResult.UserId;
 
                     // Save token
                     await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+
+                    // Save userId if present
+                    if (!string.IsNullOrEmpty(userId))
+                    {
+                        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "userId", userId);
+                    }
 
                     // Attach token
                     _http.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue("Bearer", token);
 
                     // ✅ Update Blazor auth state
-                    _authProvider.MarkUserAsAuthenticated(model.Email);
+                    // _authProvider.MarkUserAsAuthenticated(model.Email);
+
+                    // ✅ Tell Blazor that the user is authenticated
+                    await _authProvider.MarkUserAsAuthenticated(token);
 
                     _navigation.NavigateTo("/home");
                     return "✅ Login successful!";
