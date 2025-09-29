@@ -1,20 +1,47 @@
-# Build artifacts
+# ---- Build artifacts ----
 bin/
 obj/
+out/
+publish/
 
-# IDE / User-specific
+# ---- IDE / User-specific ----
 .vs/
 .vscode/
+.idea/
 *.user
 *.suo
 *.sln.docstates
 
-# Logs & temp
+# ---- Logs & temp ----
 *.log
 *.tmp
+*.temp
+*.bak
 
-# wwwroot generated files (keep your own static assets!)
+# ---- ASP.NET Core generated files ----
 wwwroot/*.gz
 wwwroot/*.br
 wwwroot/*.bundle.js
 wwwroot/*.min.css
+wwwroot/*.map
+
+# ---- Entity Framework / Databases ----
+*.db
+*.sqlite
+*.mdf
+*.ldf
+
+# ---- Node / JS (if you use npm/yarn for frontend assets) ----
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ---- Rider / Resharper ----
+_ReSharper*/
+*.DotSettings.user
+
+# ---- Environment / Config ----
+.env
+.env.*
