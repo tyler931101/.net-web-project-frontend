@@ -1,0 +1,20 @@
+# Build artifacts
+bin/
+obj/
+
+# IDE / User-specific
+.vs/
+.vscode/
+*.user
+*.suo
+*.sln.docstates
+
+# Logs & temp
+*.log
+*.tmp
+
+# wwwroot generated files (keep your own static assets!)
+wwwroot/*.gz
+wwwroot/*.br
+wwwroot/*.bundle.js
+wwwroot/*.min.css
