@@ -1,0 +1,74 @@
+@page "/auth/login"
+@layout PublicLayout
+@using System.ComponentModel.DataAnnotations
+@using frontend.Models
+@inject AuthService AuthService
+
+<div class="auth-container">
+    <h3 class="title">Login</h3>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <EditForm Model="@loginModel" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="form-group">
+            <label>Email</label>
+            <InputText @bind-Value="loginModel.Email" class="form-control" type="email" />
+            <ValidationMessage For="@(() => loginModel.Email)" />
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <InputText @bind-Value="loginModel.Password" class="form-control" type="password" />
+            <ValidationMessage For="@(() => loginModel.Password)" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+            @(isSubmitting ? "Logging in..." : "Login")
+        </button>
+    </EditForm>
+
+     <!-- Add a link to Register page -->
+    <div class="form-group text-center">
+        <p>Don't have an account yet? <NavLink href="/auth/register">Create Account</NavLink></p>
+    </div>
+</div>
+
+@code {
+    private LoginModel loginModel = new();
+    private string? successMessage;
+    private string? errorMessage;
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        successMessage = null;
+        errorMessage = null;
+
+        try
+        {
+            var result = await AuthService.Login(loginModel);
+
+            if (result.StartsWith("✅"))
+                successMessage = result;
+            else
+                errorMessage = result;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+        }
+
+        isSubmitting = false;
+    }
+}

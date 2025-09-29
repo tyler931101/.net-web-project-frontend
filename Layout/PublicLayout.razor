@@ -1,0 +1,20 @@
+@inherits LayoutComponentBase
+
+<MudPopoverProvider />
+
+<div class="public-layout">
+    <header class="topbar">
+        <div class="logo">Team</div>
+        <nav>
+            <NavLink href="/auth/login">Login</NavLink>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        @Body
+    </main>
+
+    <footer class="footer">
+        <p>© @DateTime.Now.Year MyApp. All rights reserved.</p>
+    </footer>
+</div>

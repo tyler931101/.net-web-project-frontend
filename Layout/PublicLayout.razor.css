@@ -1,0 +1,40 @@
+.public-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #fafafa;
+    color: #333;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, #4a148c, #6a1b9a);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.topbar .logo {
+    font-size: 1.5rem;
+}
+
+.topbar nav a {
+    margin-left: 1rem;
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+}
+
+.topbar nav a:hover {
+    opacity: 0.7;
+}
+
+.main-content {
+    flex: 1;
+    padding: 2rem;
+}

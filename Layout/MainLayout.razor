@@ -1,0 +1,40 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthService AuthService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="page">
+    <!-- Sidebar -->
+    <div class="sidebar bg-dark">
+        <NavMenu />
+    </div>
+
+    <!-- Main content -->
+    <main>
+        <!-- Top bar -->
+        <div class="top-row navbar navbar-expand navbar-dark px-4 d-flex justify-content-end">
+            <AuthorizeView>
+                <Authorized>
+                    <button @onclick="Logout">Logout</button>
+                </Authorized>
+                @* <NotAuthorized>
+                    <a class="btn btn-outline-light btn-sm" href="/login">Login</a>
+                </NotAuthorized> *@
+            </AuthorizeView>
+        </div>
+
+        <!-- Page body -->
+        <article class="content p-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+
+    private async Task Logout()
+    {
+        await AuthService.Logout();
+    }
+}
