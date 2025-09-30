@@ -1,24 +1,34 @@
 @using MudBlazor
-@using frontend.Pages   <!-- for DropItem -->
+@using frontend.Models
+@using frontend.Services
 
 <MudDialog>
-    <TitleContent>
-        @DialogTitle
-    </TitleContent>
+    <TitleContent>@DialogTitle</TitleContent>
 
     <DialogContent>
-        <MudTextField @bind-Value="TicketName" Label="Ticket Name" Required="true" />
-        <MudSelect T="string" @bind-Value="SelectedZone" Label="Zone" Required="true">
-            <MudSelectItem Value="@("Air Zone 1")">To do</MudSelectItem>
-            <MudSelectItem Value="@("Air Zone 2")">Review</MudSelectItem>
-            <MudSelectItem Value="@("Air Zone 3")">Testing</MudSelectItem>
-            <MudSelectItem Value="@("Air Zone 4")">Done</MudSelectItem>
+        <MudTextField @bind-Value="TicketTitle" Label="Ticket Name" Variant="Variant.Outlined" Required="true" />
+
+        <MudSelect T="string" @bind-Value="SelectedUserId" Label="Performer" Variant="Variant.Outlined" Required="true">
+            @if (IsLoading)
+            {
+                <MudSelectItem Value="@((string?)null)" Disabled="true">Loading...</MudSelectItem>
+            }
+            else if (Users.Count > 0)
+            {
+                @foreach (var user in Users)
+                {
+                    <MudSelectItem Value="@user.Id">@user.Name</MudSelectItem>
+                }
+            }
+            else
+            {
+                <MudSelectItem Value="@((string?)null)" Disabled="true">No users available</MudSelectItem>
+            }
         </MudSelect>
 
-        <MudSelect T="string" @bind-Value="SelectedTeam" Label="Team" Required="true">
-            <MudSelectItem Value="@("BLUE")">Blue</MudSelectItem>
-            <MudSelectItem Value="@("RED")">Red</MudSelectItem>
-        </MudSelect>
+        <MudTextField @bind-Value="TicketContent" Label="Content" Variant="Variant.Outlined" Lines="3" Required="true" />
+        <MudDatePicker @bind-Date="ExpireDate" Label="Expire Date" Variant="Variant.Outlined" Required="true" />
+        <MudNumericField T="int" @bind-Value="Weight" Label="Weight" Variant="Variant.Outlined" Min="1" Max="10" Required="true" />
     </DialogContent>
 
     <DialogActions>
@@ -28,35 +38,75 @@
 </MudDialog>
 
 @code {
+    [Inject] public UserService UserService { get; set; } = default!;
+    [Inject] public TicketService TicketService { get; set; } = default!;
     [CascadingParameter] public IMudDialogInstance? MudDialog { get; set; }
 
     [Parameter] public string DialogTitle { get; set; } = "Ticket";
-    [Parameter] public Ticket.DropItem? Ticket { get; set; }
+    [Parameter] public TicketModel? Ticket { get; set; }
 
-    public string TicketName { get; set; } = string.Empty;
-    public string SelectedZone { get; set; } = string.Empty;
-    public string SelectedTeam { get; set; } = "BLUE";
+    public string TicketTitle { get; set; } = string.Empty;
+    public string SelectedUserId { get; set; } = string.Empty;
+    public string TicketContent { get; set; } = string.Empty;
+    public DateTime? ExpireDate { get; set; } = DateTime.UtcNow.AddDays(7); // ✅ changed to nullable
+    public int Weight { get; set; } = 1;
+    public string Zone { get; set; } = "Todo";
 
-    protected override void OnInitialized()
+    public List<UserModel> Users { get; set; } = new();
+    public bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
     {
+        try
+        {
+            Users = await UserService.GetUsersAsync();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+
         if (Ticket != null)
         {
-            TicketName = Ticket.Name;
-            SelectedZone = Ticket.Identifier;
-            SelectedTeam = Ticket.Team;
+            TicketTitle = Ticket.Title;
+            SelectedUserId = Ticket.PerformerId;
+            TicketContent = Ticket.Content;
+            ExpireDate = Ticket.ExpireDate;
+            Weight = Ticket.Weight;
+            Zone = Ticket.Zone;
         }
     }
 
-    private void Save()
+    private async Task Save()   // ✅ must be async
     {
-        var updatedTicket = new Ticket.DropItem
+        ExpireDate ??= DateTime.UtcNow.AddDays(7);
+
+        var newTicket = new TicketModel
         {
-            Name = TicketName,
-            Team = SelectedTeam,
-            Identifier = SelectedZone
+            Id = Ticket?.Id ?? string.Empty,
+            Title = TicketTitle,
+            PerformerId = SelectedUserId,
+            Content = TicketContent,
+            ExpireDate = ExpireDate.Value,
+            Weight = Weight,
+            Zone = Zone
         };
 
-        MudDialog?.Close(DialogResult.Ok(updatedTicket));
+        if (string.IsNullOrEmpty(Ticket?.Id))
+        {
+            // 🚀 Create
+            var created = await TicketService.CreateTicketAsync(newTicket);
+            if (created != null)
+            {
+                MudDialog?.Close(DialogResult.Ok(created));
+            }
+        }
+        else
+        {
+            // 🚀 Update
+            await TicketService.UpdateTicketAsync(newTicket.Id, newTicket);
+            MudDialog?.Close(DialogResult.Ok(newTicket));
+        }
     }
 
     private void Cancel() => MudDialog?.Cancel();

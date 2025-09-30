@@ -1,7 +1,5 @@
-using System;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Threading.Tasks;
 
 namespace frontend.Services
 {
@@ -14,29 +12,28 @@ namespace frontend.Services
             _http = http;
         }
 
-        // Generic GET
         public async Task<T?> GetAsync<T>(string url)
         {
             return await _http.GetFromJsonAsync<T>(url);
         }
 
-        // Generic POST
-        public async Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest data)
+        public async Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest body)
         {
-            var response = await _http.PostAsJsonAsync(url, data);
-            if (response.IsSuccessStatusCode)
-            {
-                return await response.Content.ReadFromJsonAsync<TResponse>();
-            }
-
-            throw new HttpRequestException($"Request failed: {response.StatusCode}");
+            var response = await _http.PostAsJsonAsync(url, body);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<TResponse>();
         }
 
-        // Generic POST (no response body)
-        public async Task<bool> PostAsync<TRequest>(string url, TRequest data)
+        public async Task PutAsync<TRequest>(string url, TRequest body)
         {
-            var response = await _http.PostAsJsonAsync(url, data);
-            return response.IsSuccessStatusCode;
+            var response = await _http.PutAsJsonAsync(url, body);
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task DeleteAsync(string url)
+        {
+            var response = await _http.DeleteAsync(url);
+            response.EnsureSuccessStatusCode();
         }
     }
 }

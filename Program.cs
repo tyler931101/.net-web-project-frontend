@@ -22,7 +22,10 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddAuthorizationCore();
 
+builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<TicketService>();
 
 
 await builder.Build().RunAsync();

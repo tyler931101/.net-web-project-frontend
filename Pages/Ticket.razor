@@ -3,8 +3,11 @@
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @layout MainLayout
 @using frontend.Components
+@using frontend.Models
+@using frontend.Services
 @using MudBlazor
 @inject IDialogService DialogService
+@inject TicketService TicketService
 
 <PageTitle>Ticket</PageTitle>
 
@@ -13,19 +16,23 @@
     <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog" />
 </div>
 
-
-<MudDropContainer T="DropItem" DraggingClass="mud-alert-text-warning" ItemDraggingClass="mud-alert-text-warning" Items="_items" ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)" NoDropClass="mud-border-error" ItemDropped="ItemUpdated" Class="d-flex flex-wrap flex-grow-1">
+<MudDropContainer T="DropItem" DraggingClass="mud-alert-text-warning" ItemDraggingClass="mud-alert-text-warning"
+                  Items="_items"
+                  ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)"
+                  NoDropClass="mud-border-error"
+                  ItemDropped="ItemUpdated"
+                  Class="d-flex flex-wrap flex-grow-1">
     <ChildContent>
-        <MudDropZone T="DropItem" Identifier="Air Zone 1" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+        <MudDropZone T="DropItem" Identifier="Todo" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
             <MudText Typo="Typo.h6" Class="mb-4">To do</MudText>
-         </MudDropZone>
-        <MudDropZone T="DropItem" Identifier="Air Zone 2" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+        </MudDropZone>
+        <MudDropZone T="DropItem" Identifier="Review" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
             <MudText Typo="Typo.h6" Class="mb-4">Review</MudText>
         </MudDropZone>
-        <MudDropZone T="DropItem" Identifier="Air Zone 3" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+        <MudDropZone T="DropItem" Identifier="Testing" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
             <MudText Typo="Typo.h6" Class="mb-4">Testing</MudText>
         </MudDropZone>
-        <MudDropZone T="DropItem" Identifier="Air Zone 4" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
+        <MudDropZone T="DropItem" Identifier="Done" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
             <MudText Typo="Typo.h6" Class="mb-4">Done</MudText>
         </MudDropZone>
     </ChildContent>
@@ -40,62 +47,90 @@
 </MudDropContainer>
 
 @code {
-    private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
-    {
-        dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
-    }
-    
-    private List<DropItem> _items = new()
-    {
-        new DropItem(){ Name = "Grumman", Team = "BLUE", Identifier = "Air Zone 3" },
-        new DropItem(){ Name = "Tomcat", Team = "BLUE", Identifier = "Air Zone 3" },
-        new DropItem(){ Name = "McDonnell", Team = "BLUE", Identifier = "Air Zone 3" },
-        new DropItem(){ Name = "Frogfoot", Team = "RED", Identifier = "Air Zone 1" },
-        new DropItem(){ Name = "Fulcrum", Team = "RED", Identifier = "Air Zone 1" },
-        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
-        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
-        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
-        new DropItem(){ Name = "Fullback", Team = "RED", Identifier = "Air Zone 1" },
-    };
-    
+    private List<DropItem> _items = new();
+
     public class DropItem
     {
-        public string Name { get; init; } = string.Empty;
-        public string Team { get; init; } = string.Empty;
-        public string Identifier { get; set; } = string.Empty;
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;       // Ticket Title
+        public string Identifier { get; set; } = string.Empty; // Ticket Zone (Todo, Review, Testing, Done)
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tickets = await TicketService!.GetTicketsAsync();
+        _items = tickets.Select(t => new DropItem
+        {
+            Id = t.Id,
+            Name = t.Title,
+            Identifier = t.Zone
+        }).ToList();
+    }
+
+    private async void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
+    {
+        dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
+
+        // persist change
+        var ticket = new TicketModel
+        {
+            Id = dropItem.Item.Id,
+            Title = dropItem.Item.Name,
+            Zone = dropItem.Item.Identifier
+        };
+        await TicketService!.UpdateTicketAsync(ticket.Id, ticket);
     }
 
     private async Task OpenCreateDialog()
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var parameters = new DialogParameters { ["DialogTitle"] = "Create Ticket" };
 
         var dialog = await DialogService.ShowAsync<TicketDialog>("New Ticket", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is DropItem newTicket)
+        if (!result.Canceled && result.Data is TicketModel newTicket)
         {
-            _items.Add(newTicket);
+            _items.Add(new DropItem
+            {
+                Id = newTicket.Id,
+                Name = newTicket.Title,
+                Identifier = newTicket.Zone
+            });
         }
     }
 
     private async Task OpenEditDialog(DropItem ticket)
     {
-        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true };
         var parameters = new DialogParameters
         {
             ["DialogTitle"] = "Edit Ticket",
-            ["Ticket"] = ticket
+            ["Ticket"] = new TicketModel
+            {
+                Id = ticket.Id,
+                Title = ticket.Name,
+                Zone = ticket.Identifier
+            }
         };
 
         var dialog = await DialogService.ShowAsync<TicketDialog>("Edit Ticket", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is DropItem updatedTicket)
+        if (!result.Canceled && result.Data is TicketModel updatedTicket)
         {
-            var index = _items.IndexOf(ticket);
+            var index = _items.FindIndex(x => x.Id == updatedTicket.Id);
             if (index >= 0)
-                _items[index] = updatedTicket;
+            {
+                _items[index] = new DropItem
+                {
+                    Id = updatedTicket.Id,
+                    Name = updatedTicket.Title,
+                    Identifier = updatedTicket.Zone
+                };
+            }
+
+            await TicketService!.UpdateTicketAsync(updatedTicket.Id, updatedTicket);
         }
     }
 }
