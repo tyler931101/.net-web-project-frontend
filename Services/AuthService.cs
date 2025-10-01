@@ -86,8 +86,9 @@ namespace frontend.Services
 
         public async Task Logout()
         {
-            // Clear token
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "userId");
+            
 
             // Update Blazor auth state
             await _authProvider.MarkUserAsLoggedOut();

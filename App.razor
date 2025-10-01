@@ -3,8 +3,22 @@
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(PublicLayout)" />
-            @* <RouteView RouteData="@routeData" /> *@
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (context.User?.Identity?.IsAuthenticated != true)
+                    {
+                        @* Redirect unauthenticated users to login *@
+                        <RedirectToLogin />
+                    }
+                    else
+                    {
+                        <p>You are not authorized to access this resource.</p>
+                    }
+                </NotAuthorized>
+                <Authorizing>
+                    <p>Loading authentication state...</p>
+                </Authorizing>
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
