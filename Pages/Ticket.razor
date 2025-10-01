@@ -136,6 +136,9 @@
 
     private async void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
     {
+        if (dropItem.Item is null || dropItem.DropzoneIdentifier is null)
+        return;
+
         dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
 
         var ticket = new TicketModel
@@ -159,7 +162,7 @@
         var dialog = await DialogService.ShowAsync<TicketDialog>("New Ticket", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is TicketModel newTicket)
+        if (result != null && !result.Canceled && result.Data is TicketModel newTicket)
         {
             _items.Add(new DropItem
             {
@@ -197,7 +200,7 @@
         var dialog = await DialogService.ShowAsync<TicketDialog>("Edit Ticket", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled && result.Data is TicketModel updatedTicket)
+        if (result != null && !result.Canceled && result.Data is TicketModel updatedTicket)
         {
             var index = _items.FindIndex(x => x.Id == updatedTicket.Id);
             if (index >= 0)
@@ -233,7 +236,7 @@
         var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Delete", parameters, options);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (result != null && !result.Canceled)
         {
             bool confirmed = await TicketService.DeleteTicketAsync(ticket.Id);
             if (confirmed)

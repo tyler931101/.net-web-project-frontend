@@ -73,7 +73,14 @@ namespace frontend.Services
                     // _authProvider.MarkUserAsAuthenticated(model.Email);
 
                     // ✅ Tell Blazor that the user is authenticated
-                    await _authProvider.MarkUserAsAuthenticated(token);
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        await _authProvider.MarkUserAsAuthenticated(token);
+                    }
+                    else
+                    {
+                        return "❌ Login failed: token was null or empty.";
+                    }
 
                     _navigation.NavigateTo("/home");
                     return "✅ Login successful!";
