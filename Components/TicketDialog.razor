@@ -17,7 +17,7 @@
             {
                 @foreach (var user in Users)
                 {
-                    <MudSelectItem Value="@user.Id">@user.Name</MudSelectItem>
+                    <MudSelectItem Value="@user.Id">@user.UserName</MudSelectItem>
                 }
             }
             else
@@ -80,12 +80,15 @@
     private async Task Save()   // ✅ must be async
     {
         ExpireDate ??= DateTime.UtcNow.AddDays(7);
+         // 🔹 Look up performer object from Users list
+        var performer = Users.FirstOrDefault(u => u.Id == SelectedUserId);
 
         var newTicket = new TicketModel
         {
             Id = Ticket?.Id ?? string.Empty,
             Title = TicketTitle,
             PerformerId = SelectedUserId,
+            PerformerName = performer?.UserName ?? string.Empty, // ✅ FIX
             Content = TicketContent,
             ExpireDate = ExpireDate.Value,
             Weight = Weight,

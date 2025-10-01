@@ -16,33 +16,90 @@
     <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OpenCreateDialog" />
 </div>
 
-<MudDropContainer T="DropItem" DraggingClass="mud-alert-text-warning" ItemDraggingClass="mud-alert-text-warning"
+<MudDropContainer T="DropItem" 
+                  DraggingClass="mud-alert-text-warning" 
+                  ItemDraggingClass="mud-alert-text-warning"
                   Items="_items"
                   ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)"
                   NoDropClass="mud-border-error"
                   ItemDropped="ItemUpdated"
                   Class="d-flex flex-wrap flex-grow-1">
+
     <ChildContent>
-        <MudDropZone T="DropItem" Identifier="Todo" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
-            <MudText Typo="Typo.h6" Class="mb-4">To do</MudText>
-        </MudDropZone>
-        <MudDropZone T="DropItem" Identifier="Review" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
-            <MudText Typo="Typo.h6" Class="mb-4">Review</MudText>
-        </MudDropZone>
-        <MudDropZone T="DropItem" Identifier="Testing" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
-            <MudText Typo="Typo.h6" Class="mb-4">Testing</MudText>
-        </MudDropZone>
-        <MudDropZone T="DropItem" Identifier="Done" Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 flex-grow-1">
-            <MudText Typo="Typo.h6" Class="mb-4">Done</MudText>
-        </MudDropZone>
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="3">
+                <MudDropZone T="DropItem" Identifier="Todo"
+                             Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 h-100">
+                    <MudText Typo="Typo.h6" Class="mb-4">To do</MudText>
+                </MudDropZone>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudDropZone T="DropItem" Identifier="Review"
+                             Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 h-100">
+                    <MudText Typo="Typo.h6" Class="mb-4">Review</MudText>
+                </MudDropZone>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudDropZone T="DropItem" Identifier="Testing"
+                             Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 h-100">
+                    <MudText Typo="Typo.h6" Class="mb-4">Testing</MudText>
+                </MudDropZone>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="3">
+                <MudDropZone T="DropItem" Identifier="Done"
+                             Class="rounded-lg border-2 border-dashed mud-border-lines-default pa-6 ma-8 h-100">
+                    <MudText Typo="Typo.h6" Class="mb-4">Done</MudText>
+                </MudDropZone>
+            </MudItem>
+        </MudGrid>
     </ChildContent>
+
     <ItemRenderer>
-        <div class="mud-elevation-25 pa-4 my-4 d-flex justify-content-between align-items-center">
-            @context.Name
-            <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                           Color="Color.Primary"
-                           OnClick="@(() => OpenEditDialog(context))" />
-        </div>
+        <MudCard Class="ma-2 mud-elevation-6" Style="max-width: 320px;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                        <!-- Title truncated -->
+                        <MudText Typo="Typo.h6" 
+                                Class="mud-text-truncate" 
+                                Style="max-width: 180px; display: inline-block;">
+                            @Truncate(context.Title, 10)
+                        </MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Primary"
+                                   Size="Size.Medium"
+                                   OnClick="@(() => OpenEditDialog(context))" />
+                </CardHeaderActions>
+            </MudCardHeader>
+
+            <MudCardContent>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Due: @context.ExpireDate.ToShortDateString()
+                </MudText>
+                <!-- Content truncated -->
+                <MudText Typo="Typo.body2" 
+                        Class="mud-text-wrap" 
+                        Style="word-break: break-word; max-height: 80px; overflow: hidden;">
+                    @Truncate(context.Content, 100)
+                </MudText>
+
+                <MudText Typo="Typo.caption">Weight: @context.Weight</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Info">
+                    Performer: @context.PerformerName
+                </MudText>
+            </MudCardContent>
+
+            <MudCardActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                Color="Color.Error"
+                                Size="Size.Medium"
+                                   OnClick="@(() => DeleteTicket(context))" />
+            </MudCardActions>
+        </MudCard>
     </ItemRenderer>
 </MudDropContainer>
 
@@ -52,8 +109,13 @@
     public class DropItem
     {
         public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;       // Ticket Title
-        public string Identifier { get; set; } = string.Empty; // Ticket Zone (Todo, Review, Testing, Done)
+        public string Title { get; set; } = string.Empty;
+        public string Identifier { get; set; } = string.Empty; // Zone
+        public string Content { get; set; } = string.Empty;
+        public string PerformerId { get; set; } = string.Empty;
+        public string PerformerName { get; set; } = string.Empty; 
+        public int Weight { get; set; }
+        public DateTime ExpireDate { get; set; }
     }
 
     protected override async Task OnInitializedAsync()
@@ -62,8 +124,13 @@
         _items = tickets.Select(t => new DropItem
         {
             Id = t.Id,
-            Name = t.Title,
-            Identifier = t.Zone
+            Title = t.Title,
+            Identifier = t.Zone,
+            Content = t.Content,
+            PerformerId = t.PerformerId,
+            PerformerName = t.PerformerName,
+            Weight = t.Weight,
+            ExpireDate = t.ExpireDate
         }).ToList();
     }
 
@@ -71,11 +138,14 @@
     {
         dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
 
-        // persist change
         var ticket = new TicketModel
         {
             Id = dropItem.Item.Id,
-            Title = dropItem.Item.Name,
+            Title = dropItem.Item.Title,
+            Content = dropItem.Item.Content,
+            PerformerId = dropItem.Item.PerformerId,
+            ExpireDate = dropItem.Item.ExpireDate,
+            Weight = dropItem.Item.Weight,
             Zone = dropItem.Item.Identifier
         };
         await TicketService!.UpdateTicketAsync(ticket.Id, ticket);
@@ -94,8 +164,13 @@
             _items.Add(new DropItem
             {
                 Id = newTicket.Id,
-                Name = newTicket.Title,
-                Identifier = newTicket.Zone
+                Title = newTicket.Title,
+                Identifier = newTicket.Zone,
+                Content = newTicket.Content,
+                PerformerId = newTicket.PerformerId,
+                PerformerName = newTicket.PerformerName,
+                Weight = newTicket.Weight,
+                ExpireDate = newTicket.ExpireDate
             });
         }
     }
@@ -109,8 +184,13 @@
             ["Ticket"] = new TicketModel
             {
                 Id = ticket.Id,
-                Title = ticket.Name,
-                Zone = ticket.Identifier
+                Title = ticket.Title,
+                Zone = ticket.Identifier,
+                Content = ticket.Content,
+                PerformerId = ticket.PerformerId,
+                PerformerName = ticket.PerformerName,
+                Weight = ticket.Weight,
+                ExpireDate = ticket.ExpireDate
             }
         };
 
@@ -125,12 +205,49 @@
                 _items[index] = new DropItem
                 {
                     Id = updatedTicket.Id,
-                    Name = updatedTicket.Title,
-                    Identifier = updatedTicket.Zone
+                    Title = updatedTicket.Title,
+                    Identifier = updatedTicket.Zone,
+                    Content = updatedTicket.Content,
+                    PerformerId = updatedTicket.PerformerId,
+                    PerformerName = updatedTicket.PerformerName,
+                    Weight = updatedTicket.Weight,
+                    ExpireDate = updatedTicket.ExpireDate
                 };
             }
 
             await TicketService!.UpdateTicketAsync(updatedTicket.Id, updatedTicket);
         }
+    }
+
+    private async Task DeleteTicket(DropItem ticket)
+    {
+        var parameters = new DialogParameters
+        {
+            ["ContentText"] = $"Are you sure you want to delete ticket '{ticket.Title}'?",
+            ["ButtonText"] = "Delete",
+            ["Color"] = Color.Error
+        };
+
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>("Confirm Delete", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            bool confirmed = await TicketService.DeleteTicketAsync(ticket.Id);
+            if (confirmed)
+            {
+                _items.Remove(ticket);
+                StateHasChanged();
+            }
+        }
+    }
+
+    // 🔹 Helper to truncate long strings
+    private string Truncate(string text, int maxLength)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
     }
 }

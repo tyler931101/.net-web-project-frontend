@@ -13,6 +13,7 @@ namespace frontend.Services
 
         public async Task<List<TicketModel>> GetTicketsAsync()
         {
+            
             return await _api.GetAsync<List<TicketModel>>("api/ticket") ?? new();
         }
 

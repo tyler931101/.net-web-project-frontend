@@ -53,7 +53,7 @@ namespace frontend.Services
 
                 if (authResult != null && authResult.IsSuccess && !string.IsNullOrEmpty(authResult.Message))
                 {
-                    var token = authResult.Message;
+                    var token = authResult.Token;
                     var userId = authResult.UserId;
 
                     // Save token

@@ -6,5 +6,6 @@ namespace frontend.Models
         public string Message { get; set; } = string.Empty;
         public List<string>? Errors { get; set; }
         public string? UserId { get; set; }
+        public string? Token { get; set; }
     }
 }
