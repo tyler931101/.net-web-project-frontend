@@ -26,7 +26,7 @@
             }
         </MudSelect>
 
-        <MudTextField @bind-Value="TicketContent" Label="Content" Variant="Variant.Outlined" Lines="3" Required="true" />
+        <MudTextField @bind-Value="TicketContent" Label="Content" Variant="Variant.Outlined" Lines="5" Required="true" />
         <MudDatePicker @bind-Date="ExpireDate" Label="Expire Date" Variant="Variant.Outlined" Required="true" />
         <MudNumericField T="int" @bind-Value="Weight" Label="Weight" Variant="Variant.Outlined" Min="1" Max="10" Required="true" />
     </DialogContent>
